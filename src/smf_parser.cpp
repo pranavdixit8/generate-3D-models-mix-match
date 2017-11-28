@@ -19,14 +19,10 @@ Mesh *parseSmfFile (string filename) {
 		exit(1);
 	}
 
+	// Read data
 	char type;
-	int numVertices, numFaces;
+	Mesh *mesh = new Mesh(); // Initialize an empty mesh
 
-	smf_file >> type >> numVertices >> numFaces; // Read first line for number of vertices and faces
-
-	Mesh *mesh = new Mesh(numVertices, numFaces); // Initialize Mesh
-
-	// Read remaining data
 	while (smf_file >> type) {
 		string line;
 		float x, y, z;
@@ -43,6 +39,9 @@ Mesh *parseSmfFile (string filename) {
 			case 'f':
 				smf_file >> v1 >> v2 >> v3;
 				mesh->insertTriangle(v1, v2, v3);
+				break;
+			default:
+				getline(smf_file, line); // Ignore arbitrary lines
 				break;
 		}
 	}
