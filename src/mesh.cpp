@@ -25,34 +25,29 @@ Vertex::Vertex (vec3 position) {
 
 // Compute Bounding Box
 void Mesh::computeBoundingBox () {
-	vec3 position = vertexMap[1]->position;
-	xMin = xMax = position.x;
-	yMin = yMax = position.y;
-	zMin = zMax = position.z;
+	min = vertexMap[1]->position;
+	max = vertexMap[1]->position;
 
 	for (int i = 1; i <= numVertices; i++) {
 		vec3 position = vertexMap[i]->position;
-		float xVal = position.x;
-		float yVal = position.y;
-		float zVal = position.z;
-		
-		if (xVal < xMin)
-			xMin = xVal;
-		
-		if (xVal > xMax)
-			xMax = xVal;
 
-		if (yVal < yMin)
-			yMin = yVal;
+		if (position.x < min.x)
+			min.x = position.x;
 		
-		if (yVal > yMax)
-			yMax = yVal;
+		if (position.x > max.x)
+			max.x = position.x;
 
-		if (zVal < zMin)
-			zMin = zVal;
+		if (position.y < min.y)
+			min.y = position.y;
 		
-		if (zVal > zMax)
-			zMax = zVal;
+		if (position.y > max.y)
+			max.y = position.y;
+
+		if (position.z < min.z)
+			min.z = position.z;
+		
+		if (position.z > max.z)
+			max.z = position.z;
 	}
 }
 

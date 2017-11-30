@@ -14,6 +14,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <random>
+#include <part.h>
 
 #define PI 3.14159265
 
@@ -36,7 +37,8 @@ using glm::outerProduct;
 enum SubdivisionType {BUTTERFLY, LOOP};
 
 // Winged Edge
-struct W_edge {
+class W_edge {
+public:
 	struct Vertex *start, *end;
 	struct Face *left, *right;
 	struct W_edge *left_prev, *left_next;
@@ -48,7 +50,8 @@ struct W_edge {
 };
 
 // Vertex
-struct Vertex {
+class Vertex {
+public:
 	vec3 position;
 	vec3 normal;
 	mat4 quadric;
@@ -60,14 +63,16 @@ struct Vertex {
 };
 
 // Face
-struct Face {
+class Face {
+public:
 	struct W_edge *edge;
 	
 	Face (W_edge *edge) : edge(edge) {};
 };
 
 // Mesh
-struct Mesh {
+class Mesh : public Part {
+public:
 	int numVertices, numEdges, numFaces;
 	map<string, W_edge*> edgeMap;
 	map<int, string> edgeKeyMap;
@@ -77,7 +82,6 @@ struct Mesh {
 	map<Vertex*, int> vertexIndexMap;
 	map<Face*, int> faceIndexMap;
 	map<string, vec3> faceNormalMap;
-	float xMin, yMin, zMin, xMax, yMax, zMax;
 
 	Mesh () {};
 

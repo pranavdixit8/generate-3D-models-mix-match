@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <group.h>
 
 #define WIDTH 1200
 #define HEIGHT 800
@@ -210,9 +211,11 @@ string exec(const char* cmd) {
 void initMesh (string smf_filename) {
 	mesh = parseSmfFile(smf_filename);
 	mesh->computeBoundingBox();
-	obj_pos[0] = -(mesh->xMin + mesh->xMax) / 2;
-	obj_pos[1] = -(mesh->yMin + mesh->yMax) / 2;
-	obj_pos[2] = 1.5 * (mesh->zMin - mesh->zMax);
+	vec3 min = mesh->min;
+	vec3 max = mesh->max;
+	obj_pos[0] = -(min.x + max.x) / 2;
+	obj_pos[1] = -(min.y + max.y) / 2;
+	obj_pos[2] = 1.5 * (min.z - max.z);
 }
 
 // GLUI control callback
