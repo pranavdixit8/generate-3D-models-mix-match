@@ -187,7 +187,7 @@ void glutDisplay (void) {
 	glScalef(scale, scale, scale);
 	glMultMatrixf(view_rotate);
 
-	glColor3f(1.0, 1.0, 0.0);
+	glColor3f(0.6, 0.6, 0.6);
 
 	displayMesh();
 
@@ -350,6 +350,10 @@ int main(int argc, char* argv[]) {
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
 	glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
+
+	// Setup Color
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 
 	// Enable z-buffering
 	glEnable(GL_DEPTH_TEST);
