@@ -24,7 +24,7 @@ using std::shared_ptr;
 using std::array;
 
 enum DisplayType {FLAT_SHADED, SMOOTH_SHADED, WIREFRAME, SHADED_WITH_EDGES};
-enum Buttons {ROTATION, OPEN, SAVE, QUIT, SUBDIVIDE, DECIMATE};
+enum Buttons {ROTATION, OPEN, OPEN_DIR, SAVE, QUIT, SUBDIVIDE, DECIMATE};
 
 Mesh *mesh;
 
@@ -231,6 +231,30 @@ void control_cb(int control) {
 			break;
 		}
 
+		case OPEN_DIR: {
+			string folderPath;
+			folderPath = exec("zenity --file-selection --directory --title=\"Select a Directory\" 2>/dev/null");
+			// Remove the newline character at the end
+			folderPath = folderPath.substr(0, folderPath.size() - 1);
+
+			string command = "ls ";
+			command += folderPath;
+
+			string s = exec(command.c_str());
+			string delimiter = "\n";
+
+			size_t pos = 0;
+			string token;
+			while ((pos = s.find(delimiter)) != string::npos) {
+				token = s.substr(0, pos);
+				s.erase(0, pos + delimiter.length());
+			}
+
+			initMesh(folderPath + "/" + token);
+
+			break;
+		}
+
 		case SAVE: {
 			string saveFilePath;
 			saveFilePath = exec("zenity --file-selection --save --confirm-overwrite --title=\"Save SMF file\" 2>/dev/null");
@@ -322,6 +346,7 @@ void setupGlui () {
 
 	// Add Buttons
 	glui->add_button_to_panel(controlsPanel, "Open", OPEN, control_cb);
+	glui->add_button_to_panel(controlsPanel, "Open Dir", OPEN_DIR, control_cb);
 	glui->add_button_to_panel(controlsPanel, "Save", SAVE, control_cb);
 	glui->add_button_to_panel(controlsPanel, "Quit", QUIT, (GLUI_Update_CB)exit);
 };
