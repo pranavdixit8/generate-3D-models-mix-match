@@ -7,6 +7,8 @@
 	@brief		CMPT-764: Assignment 2, Implements SMF viewer.
 */
 
+#include <off_screen_renderer.h>
+
 #include <GL/glut.h>
 #include <GL/glui.h>
 #include <memory>
@@ -106,8 +108,12 @@ void control_cb(int control) {
 			inputFilePath = exec("zenity --file-selection --file-filter='3D Object files (smf,obj) | *.smf *.obj' --title=\"Select a SMF file\" 2>/dev/null");
 			// Remove the newline character at the end
 			inputFilePath = inputFilePath.substr(0, inputFilePath.size() - 1);
-			if (inputFilePath.size() != 0)
+			if (inputFilePath.size() != 0) {
 				part = Part::initPart(inputFilePath);
+
+				Vector cam(-1.0, 0.0, 0.0);
+				OffScreenRenderer::render(part->mesh, cam);
+			}
 			break;
 		}
 
