@@ -23,6 +23,12 @@
 #include <iostream>
 #include "ApproxMVBB/ComputeApproxMVBB.hpp"
 #include "ApproxMVBB/OOBB.hpp"
+#include "ApproxMVBB/TypeDefsPoints.hpp"
+#include "ApproxMVBB/Common/MyMatrixTypeDefs.hpp"
+
+
+#include "ApproxMVBB/TypeDefsPoints.hpp"
+#include "ApproxMVBB/Config/Config.hpp"
 
 #include <Eigen/Dense>
 #include <vector>
@@ -73,6 +79,131 @@ void glutReshape (int x, int y) {
 
 	glutPostRedisplay();
 }
+
+// Execute shell commands
+string exec(const char* cmd) {
+    array<char, 128> buffer;
+    string result;
+    shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) throw runtime_error("popen() failed!");
+    while (!feof(pipe.get())) {
+        if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+            result += buffer.data();
+    }
+    return result;
+}
+
+
+
+
+void renderOOBB (ApproxMVBB::OOBB oobb) {
+	//m_minPoint
+	//m_maxPoint
+	glColor3f(0.0f,0.0f,1.0f); //blue color
+
+//	glBegin(GL_LINES);
+//		glColor3f(1.0, 1.0, 0.0);
+//		glVertex3f(0.0, 0.0, 0.0);
+//		glVertex3f(oobb.getDirection(0)(0), oobb.getDirection(0)(1), oobb.getDirection(0)(2));
+//
+//		glColor3f(0.0, 1.0, 1.0);
+//		glVertex3f(0.0, 0.0, 0.0);
+//		glVertex3f(oobb.getDirection(1)(0), oobb.getDirection(1)(1), oobb.getDirection(1)(2));
+//
+//		glColor3f(1.0, 0.0, 1.0);
+//		glVertex3f(0.0, 0.0, 0.0);
+//		glVertex3f(oobb.getDirection(2)(0), oobb.getDirection(2)(1), oobb.getDirection(2)(2));
+//	glEnd();
+
+
+	//Transformation translate(CGAL::TRANSLATION, Vector(x_trans, y_trans, z_trans));
+
+	//ApproxMVBB::Vector3 m_minPoint = oobb.m_minPoint;
+	ApproxMVBB::Vector3 m_minPoint = oobb.m_q_KI * oobb.m_minPoint;  // A_IK * oobb.m_minPoint
+
+	//ApproxMVBB::Vector3 m_maxPoint = oobb.m_maxPoint;
+	ApproxMVBB::Vector3 m_maxPoint = oobb.m_q_KI * oobb.m_maxPoint;  // A_IK * oobb.m_minPoint
+
+	glBegin(GL_LINES);
+		glVertex3f(m_minPoint(0), m_minPoint(1), m_minPoint(2));
+		glVertex3f(m_maxPoint(0), m_minPoint(1), m_minPoint(2));
+
+		glVertex3f(m_maxPoint(0), m_minPoint(1), m_minPoint(2));
+		glVertex3f(m_maxPoint(0), m_maxPoint(1), m_minPoint(2));
+
+		glVertex3f(m_maxPoint(0), m_maxPoint(1), m_minPoint(2));
+		glVertex3f(m_minPoint(0), m_maxPoint(1), m_minPoint(2));
+
+		glVertex3f(m_minPoint(0), m_maxPoint(1), m_minPoint(2));
+		glVertex3f(m_minPoint(0), m_minPoint(1), m_minPoint(2));
+
+
+		glVertex3f(m_minPoint(0), m_minPoint(1), m_minPoint(2));
+		glVertex3f(m_minPoint(0), m_minPoint(1), m_maxPoint(2));
+
+		glVertex3f(m_maxPoint(0), m_minPoint(1), m_minPoint(2));
+		glVertex3f(m_maxPoint(0), m_minPoint(1), m_maxPoint(2));
+
+		glVertex3f(m_maxPoint(0), m_maxPoint(1), m_minPoint(2));
+		glVertex3f(m_maxPoint(0), m_maxPoint(1), m_maxPoint(2));
+
+		glVertex3f(m_minPoint(0), m_maxPoint(1), m_minPoint(2));
+		glVertex3f(m_minPoint(0), m_maxPoint(1), m_maxPoint(2));
+
+
+		glVertex3f(m_minPoint(0), m_minPoint(1), m_maxPoint(2));
+		glVertex3f(m_maxPoint(0), m_minPoint(1), m_maxPoint(2));
+
+		glVertex3f(m_maxPoint(0), m_minPoint(1), m_maxPoint(2));
+		glVertex3f(m_maxPoint(0), m_maxPoint(1), m_maxPoint(2));
+
+		glVertex3f(m_maxPoint(0), m_maxPoint(1), m_maxPoint(2));
+		glVertex3f(m_minPoint(0), m_maxPoint(1), m_maxPoint(2));
+
+		glVertex3f(m_minPoint(0), m_maxPoint(1), m_maxPoint(2));
+		glVertex3f(m_minPoint(0), m_minPoint(1), m_maxPoint(2));
+	glEnd();
+}
+
+Part *thePart = NULL;
+ApproxMVBB::OOBB theOOBB;
+void test_oobb() {
+	string inputFilePath;
+	inputFilePath = exec("zenity --file-selection --file-filter='3D Object files (smf,obj) | *.smf *.obj' --title=\"Select a SMF file\" 2>/dev/null");
+	// Remove the newline character at the end
+	inputFilePath = inputFilePath.substr(0, inputFilePath.size() - 1);
+	if (inputFilePath.size() != 0) {
+		thePart = Part::initPart("Test", inputFilePath);
+
+		ApproxMVBB::Matrix3Dyn points(3, thePart->mesh.number_of_vertices());
+		int i = 0;
+		for (VertexIndex v: thePart->mesh.vertices()) {
+			Point p = thePart->mesh.point(v);
+			points(i, 0) = p.x();
+			points(i, 1) = p.y();
+			points(i, 2) = p.z();
+		}
+
+		std::cout<<"number of pionts: "<< points.size()<<std::endl;
+
+		theOOBB = ApproxMVBB::approximateMVBB(points,0.000001,500,5,10,5);
+		//theOOBB.expandZeroExtent(0.1);
+		theOOBB.expandToMinExtentAbsolute(0.1);
+
+		ApproxMVBB::Vector3List list = theOOBB.getCornerPoints();
+
+		for(int i=0; i<8; i++)
+			std::cout << "Point("<< i+1 <<"): " << list[i](0) << ", " << list[i](1) << ", "<< list[i](2) << std::endl;
+		std::cout << "Quaternion: " << theOOBB.m_q_KI.matrix() << std::endl;
+
+		std::cout << "direction 0: " << theOOBB.getDirection(0) << std::endl;
+		std::cout << "direction 1: " << theOOBB.getDirection(1) << std::endl;
+		std::cout << "direction 2: " << theOOBB.getDirection(2) << std::endl;
+
+
+	}
+}
+
 
 void displayAxes () {
 	glBegin(GL_LINES);
@@ -134,53 +265,23 @@ void glutDisplay (void) {
 
 	glColor3f(1.0, 1.0, 0.0);
 
-	displayAxes();
+	//displayAxes();
 	displayMesh();
 
-	glutSwapBuffers();
-}
+	if(NULL != thePart) {
+		thePart->render(FLAT_SHADED);
+		renderOOBB(theOOBB);
+	}
 
-// Execute shell commands
-string exec(const char* cmd) {
-    array<char, 128> buffer;
-    string result;
-    shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) throw runtime_error("popen() failed!");
-    while (!feof(pipe.get())) {
-        if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
-            result += buffer.data();
-    }
-    return result;
+
+	glutSwapBuffers();
 }
 
 // GLUI control callback
 void control_cb(int control) {
 	switch (control) {
 		case OPEN: {
-			string inputFilePath;
-			inputFilePath = exec("zenity --file-selection --file-filter='3D Object files (smf,obj) | *.smf *.obj' --title=\"Select a SMF file\" 2>/dev/null");
-			// Remove the newline character at the end
-			inputFilePath = inputFilePath.substr(0, inputFilePath.size() - 1);
-			if (inputFilePath.size() != 0) {
-				Part *part = Part::initPart("Test", inputFilePath);
-				Mesh mesh = part->mesh;
-
-				ApproxMVBB::Matrix3Dyn points(3, mesh.number_of_vertices());
-				int i = 0;
-				for (VertexIndex v: mesh.vertices()) {
-					Point p = mesh.point(v);
-					points(i, 0) = p.x();
-					points(i, 1) = p.y();
-					points(i, 2) = p.z();
-				}
-
-				ApproxMVBB::OOBB oobb = ApproxMVBB::approximateMVBB(points,0.001,500,5,0,5);
-
-				vector<Eigen::Array3f> list = oobb.getCornerPoints();
-				
-				std::cout << "List: " << list[0] << std::endl;
-				std::cout << "Quaternion: " << oobb.m_q_KI.matrix() << std::endl;
-			}
+			test_oobb();
 			break;
 		}
 
