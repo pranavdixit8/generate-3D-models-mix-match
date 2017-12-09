@@ -19,6 +19,15 @@
 #include <part.h>
 #include <group.h>
 
+
+#include <iostream>
+#include "ApproxMVBB/ComputeApproxMVBB.hpp"
+#include "ApproxMVBB/OOBB.hpp"
+
+#include <Eigen/Dense>
+#include <vector>
+
+
 #define WIDTH 1200
 #define HEIGHT 800
 
@@ -153,6 +162,24 @@ void control_cb(int control) {
 			// Remove the newline character at the end
 			inputFilePath = inputFilePath.substr(0, inputFilePath.size() - 1);
 			if (inputFilePath.size() != 0) {
+				Part *part = Part::initPart("Test", inputFilePath);
+				Mesh mesh = part->mesh;
+
+				ApproxMVBB::Matrix3Dyn points(3, mesh.number_of_vertices());
+				int i = 0;
+				for (VertexIndex v: mesh.vertices()) {
+					Point p = mesh.point(v);
+					points(i, 0) = p.x();
+					points(i, 1) = p.y();
+					points(i, 2) = p.z();
+				}
+
+				ApproxMVBB::OOBB oobb = ApproxMVBB::approximateMVBB(points,0.001,500,5,0,5);
+
+				vector<Eigen::Array3f> list = oobb.getCornerPoints();
+				
+				std::cout << "List: " << list[0] << std::endl;
+				std::cout << "Quaternion: " << oobb.m_q_KI.matrix() << std::endl;
 			}
 			break;
 		}
