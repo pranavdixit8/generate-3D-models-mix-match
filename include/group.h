@@ -35,7 +35,7 @@ public:
 };
 
 Group::Group (string label) {
-	this->setLabel(label);
+	this->setLabel(label+"_group");
 }
 
 void Group::addMember (PartBase *member) {

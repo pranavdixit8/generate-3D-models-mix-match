@@ -18,6 +18,7 @@
 
 typedef CGAL::Simple_cartesian<double> K;
 typedef K::Point_3 Point;
+typedef K::Point_2 Point_2;
 typedef K::Vector_3 Vector;
 typedef CGAL::Surface_mesh<Point> Mesh;
 typedef Mesh::Vertex_index VertexIndex;

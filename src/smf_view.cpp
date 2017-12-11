@@ -18,6 +18,8 @@
 #include <parser.h>
 #include <part.h>
 #include <group.h>
+#include <RelationContainer.h>
+#include <relation.h>
 
 
 #include <iostream>
@@ -44,6 +46,7 @@ using std::array;
 enum Buttons {ROTATION, OPEN, OPEN_DIR, SAVE, QUIT, CHAIR_A, CHAIR_B, SWAP_LEGS, SWAP_BACK, SWAP_SEAT};
 
 vector<PartBase*> chairs;
+vector<RelationContainer*> graphs;
 PartBase *chair;
 
 PartBase *chairA;
@@ -118,11 +121,11 @@ void renderOOBB (ApproxMVBB::OOBB oobb) {
 
 	//Transformation translate(CGAL::TRANSLATION, Vector(x_trans, y_trans, z_trans));
 
-	//ApproxMVBB::Vector3 m_minPoint = oobb.m_minPoint;
 	ApproxMVBB::Vector3 m_minPoint = oobb.m_q_KI * oobb.m_minPoint;  // A_IK * oobb.m_minPoint
+	//ApproxMVBB::Vector3 m_minPoint = oobb.m_minPoint;  // A_IK * oobb.m_minPoint
 
-	//ApproxMVBB::Vector3 m_maxPoint = oobb.m_maxPoint;
 	ApproxMVBB::Vector3 m_maxPoint = oobb.m_q_KI * oobb.m_maxPoint;  // A_IK * oobb.m_minPoint
+	//ApproxMVBB::Vector3 m_maxPoint = oobb.m_maxPoint;  // A_IK * oobb.m_minPoint
 
 	glBegin(GL_LINES);
 		glVertex3f(m_minPoint(0), m_minPoint(1), m_minPoint(2));
@@ -186,19 +189,30 @@ void test_oobb() {
 
 		std::cout<<"number of pionts: "<< points.size()<<std::endl;
 
-		theOOBB = ApproxMVBB::approximateMVBB(points,0.000001,500,5,10,5);
+		theOOBB = ApproxMVBB::approximateMVBB(points,0.00000001,500,5,0,5);
 		//theOOBB.expandZeroExtent(0.1);
-		theOOBB.expandToMinExtentAbsolute(0.1);
+		//theOOBB.expandToMinExtentAbsolute(0.1);
+
+
+		// To make all points inside the OOBB :
+//		ApproxMVBB::Matrix33 A_KI = theOOBB.m_q_KI.matrix().transpose();  // faster to store the transformation matrix first
+//		auto size = points.cols();
+//		for (unsigned int i = 0; i < size; ++i)
+//		{
+//			theOOBB.unite(A_KI * points.col(i));
+//		}
+
+
 
 		ApproxMVBB::Vector3List list = theOOBB.getCornerPoints();
 
-		for(int i=0; i<8; i++)
-			std::cout << "Point("<< i+1 <<"): " << list[i](0) << ", " << list[i](1) << ", "<< list[i](2) << std::endl;
-		std::cout << "Quaternion: " << theOOBB.m_q_KI.matrix() << std::endl;
-
-		std::cout << "direction 0: " << theOOBB.getDirection(0) << std::endl;
-		std::cout << "direction 1: " << theOOBB.getDirection(1) << std::endl;
-		std::cout << "direction 2: " << theOOBB.getDirection(2) << std::endl;
+//		for(int i=0; i<8; i++)
+//			std::cout << "Point("<< i+1 <<"): " << list[i](0) << ", " << list[i](1) << ", "<< list[i](2) << std::endl;
+//		std::cout << "Quaternion: " << theOOBB.m_q_KI.matrix() << std::endl;
+//
+//		std::cout << "direction 0: " << theOOBB.getDirection(0) << std::endl;
+//		std::cout << "direction 1: " << theOOBB.getDirection(1) << std::endl;
+//		std::cout << "direction 2: " << theOOBB.getDirection(2) << std::endl;
 
 
 	}
@@ -292,7 +306,10 @@ void control_cb(int control) {
 			folderPath = folderPath.substr(0, folderPath.size() - 1);
 
 			// Load Files
+			std::cout<< "to load chairs."<<std::endl;
 			chairs = loadFiles(folderPath);
+			std::cout<< "chairs are loaded."<<std::endl;
+			graphs = make_graphs(chairs);
 			updateGLUI(chairs);
 
 			break;

@@ -1,6 +1,6 @@
 /**
 	@file 		relation.h
-	@author 	Hamid Homapour (ravia@sfu.ca)
+	@author 	Hamid Homapour (hamid_homapour@sfu.ca)
 	@date		December 3, 2017
 	@version 	1.0
 
@@ -10,7 +10,10 @@
 #ifndef RELATION_H
 #define RELATION_H
 
+#include <cgal.h>
 #include <part_base.h>
+#include <part.h>
+#include <group.h>
 #include <vector>
 #include <math.h>
 
@@ -24,79 +27,169 @@ public:
 
 	enum CoPlanarityType {TOP, BOTTOM, LEFT, RIGHT, BACK, FRONT, NONE};
 
+	// vector<RelationContainer*>  make_graphs(vector<PartBase*> chairs);
+	// void create_vertices(relationContainer *graph, PartBase *chair);
+
 	BoundingBox fitAxisAlignedCuboid (PartBase *thePart);
 
-	std::pair <Relation::CoPlanarityType,Relation::CoPlanarityType> checkAxisAlignedCoPlanarity (PartBase *part1, PartBase *part2);
+	vector<std::pair <Relation::CoPlanarityType,Relation::CoPlanarityType>>  checkAxisAlignedCoPlanarity (PartBase *part1, PartBase *part2);
 	Vector checkAxisAlignedCoCentricity (PartBase *part1, PartBase *part2);
 
-
+	
 };
+Relation *relationObj = new Relation();
+
+void create_vertices(RelationContainer *graph, PartBase *chair)
+{	
+	if(Group* theChair = dynamic_cast<Group*>(chair)){
+		graph->addVertex(theChair->label, "Group");
+		for (int i = 0; i < theChair->members.size(); i++) {
+
+			create_vertices(graph, theChair->members[i]);
+		}
+	}
+	else 
+		graph->addVertex(chair->label, "Part");
+}
+
+void create_edges(RelationContainer *graph, PartBase *chair)
+{	
+
+	// todo: label between a part and a group can be equal so we should change a little bit
+
+	
+
+
+	// lbl_ver_1.first is label
+	// lbl_ver_1.second is vertex index in the graph
+	for ( const auto &lbl_ver_1 : graph->getLabelVertexMap() )		
+		for ( const auto &lbl_ver_2 : graph->getLabelVertexMap() ) 
+		{
+			string label_1 = lbl_ver_1.first;
+			string label_2 = lbl_ver_2.first;
+
+			std::cout << "candidates: " << label_1 << ", " << label_2 << std::endl;
+
+			string type_1 = graph->getVertexData(label_1).type;
+			string type_2 = graph->getVertexData(label_2).type;
+
+			if(0 != label_1.compare(label_2) || 0 != type_1.compare(type_2)) {				
+				PartBase *part1 = chair->getMember(label_1);
+				PartBase *part2 = chair->getMember(label_2);
+				std::cout << "go to check" << std::endl;
+				//vector<std::pair <Relation::CoPlanarityType,Relation::CoPlanarityType>> Relation::checkAxisAlignedCoPlanarity
+				vector<std::pair <Relation::CoPlanarityType,Relation::CoPlanarityType>> vec;
+				vec = relationObj->checkAxisAlignedCoPlanarity(part1, part2);
+				std::cout << "checked" << std::endl;
+
+				// create edge
+				if(vec.size() > 0)
+					std::cout << part1->label << ", " << part2->label << std::endl;
+			}
+
+		}
+
+        
+    
+	//chair->labelIndexMap
+	
+}
+
+vector<RelationContainer*>  make_graphs(vector<PartBase*> chairs) 
+{
+	vector<RelationContainer*> graphs;
+	
+	for (int i = 0; i < chairs.size(); i++) {
+		PartBase *chair = chairs[i];
+		RelationContainer *aRelationContainer = new RelationContainer();		
+
+		create_vertices(aRelationContainer, chair);	
+		create_edges(aRelationContainer, chair);	
+
+		aRelationContainer->print();		
+		graphs.push_back(aRelationContainer);
+	    
+	    // relationContainer->addEdge("back", "front");
+	    // relationContainer->print();
+
+	}
+
+	return graphs;
+}
+
+
+
 
 BoundingBox Relation::fitAxisAlignedCuboid (PartBase* thePart) {
 		// todo: CGAL::Iso_cuboid_3 is the same as BoundingBox, but with two points as the handles, we can implement using this
 		return thePart->boundingBox;
 }	
 
-std::pair <Relation::CoPlanarityType,Relation::CoPlanarityType> Relation::checkAxisAlignedCoPlanarity (PartBase *part1, PartBase *part2) {
+vector<std::pair <Relation::CoPlanarityType,Relation::CoPlanarityType>> Relation::checkAxisAlignedCoPlanarity (PartBase *part1, PartBase *part2) {
 
 	BoundingBox bb1 = part1->boundingBox;
 	BoundingBox bb2 = part2->boundingBox;
 
+	std::cout << "we have bounding boxes!" << std::endl;
+
+	vector<std::pair <Relation::CoPlanarityType,Relation::CoPlanarityType>> result;
+
 	// ------------------------------------
 	// check TOP coplanarity
 	if(fabs(bb1.zmax() - bb2.zmax()) < epsilon)
-		return std::make_pair(Relation::TOP, Relation::TOP);
+		result.push_back( std::make_pair(Relation::TOP, Relation::TOP) );
 
 	// check BOTTOM coplanarity
 		if(fabs(bb1.zmin() - bb2.zmin()) < epsilon)
-			return std::make_pair(Relation::BOTTOM, Relation::BOTTOM);
+			result.push_back( std::make_pair(Relation::BOTTOM, Relation::BOTTOM) );
 
 	// check TOP from first and BOTTOM from second coplanarity
 	if(fabs(bb1.zmax() - bb2.zmin()) < epsilon)
-		return std::make_pair(Relation::TOP, Relation::BOTTOM);
+		result.push_back( std::make_pair(Relation::TOP, Relation::BOTTOM) );
 
 
 	// check BOTTOM from first and TOP from second coplanarity
 	if(fabs(bb1.zmax() - bb2.zmin()) < epsilon)
-		return std::make_pair(Relation::BOTTOM, Relation::TOP);
+		result.push_back( std::make_pair(Relation::BOTTOM, Relation::TOP) );
 
 	// ------------------------------------
 
 	// check RIGHT coplanarity
 	if(fabs(bb1.xmax() - bb2.xmax()) < epsilon)
-		return std::make_pair(Relation::RIGHT, Relation::RIGHT);
+		result.push_back( std::make_pair(Relation::RIGHT, Relation::RIGHT) );
 
 	// check LEFT coplanarity
 	if(fabs(bb1.xmin() - bb2.xmin()) < epsilon)
-		return std::make_pair(Relation::LEFT, Relation::LEFT);
+		result.push_back( std::make_pair(Relation::LEFT, Relation::LEFT) );
 
 	// check RIGHT from first and LEFT from second coplanarity
 	if(fabs(bb1.xmax() - bb2.xmin()) < epsilon)
-		return std::make_pair(Relation::RIGHT, Relation::LEFT);
+		result.push_back( std::make_pair(Relation::RIGHT, Relation::LEFT) );
 
 	// check LEFT from first and RIGHT from second coplanarity
 	if(fabs(bb1.xmin() - bb2.xmax()) < epsilon)
-		return std::make_pair(Relation::LEFT, Relation::RIGHT);
+		result.push_back( std::make_pair(Relation::LEFT, Relation::RIGHT) );
 
 	// ------------------------------------
 
 	// check FRONT coplanarity
 	if(fabs(bb1.ymax() - bb2.ymax()) < epsilon)
-		return std::make_pair(Relation::FRONT, Relation::FRONT);
+		result.push_back( std::make_pair(Relation::FRONT, Relation::FRONT) );
 
 	// check BACK coplanarity
 	if(fabs(bb1.ymin() - bb2.ymin()) < epsilon)
-		return std::make_pair(Relation::BACK, Relation::BACK);
+		result.push_back( std::make_pair(Relation::BACK, Relation::BACK) );
 
 	// check FRONT from first and BACK from second coplanarity
 	if(fabs(bb1.ymax() - bb2.ymin()) < epsilon)
-		return std::make_pair(Relation::FRONT, Relation::BACK);
+		result.push_back( std::make_pair(Relation::FRONT, Relation::BACK) );
 
 	// check BACK from first and FRONT from second coplanarity
 	if(fabs(bb1.ymin() - bb2.ymax()) < epsilon)
-		return std::make_pair(Relation::BACK, Relation::FRONT);
+		result.push_back( std::make_pair(Relation::BACK, Relation::FRONT) );
 
-	return std::make_pair(Relation::NONE, Relation::NONE);
+	//return std::make_pair(Relation::NONE, Relation::NONE);
+	return result;
 }
 
 Vector Relation::checkAxisAlignedCoCentricity(PartBase *part1, PartBase *part2) {
@@ -145,4 +238,5 @@ Vector Relation::checkAxisAlignedCoCentricity(PartBase *part1, PartBase *part2) 
 
 
 #endif
+
 
