@@ -15,6 +15,8 @@
 #include <vector>
 #include <map>
 
+#include <boost/algorithm/string/predicate.hpp>
+
 using std::vector;
 using std::map;
 using std::make_pair;
@@ -31,11 +33,12 @@ public:
 	void render (DisplayType displayType) override;
 
 	PartBase *getMember (string label);
+	PartBase *getMemberGlobally (string label);	
 	void setMember (string label, PartBase *member);
 };
 
 Group::Group (string label) {
-	this->setLabel(label+"_group");
+	this->setLabel(label + "_Group");
 }
 
 void Group::addMember (PartBase *member) {
@@ -45,7 +48,9 @@ void Group::addMember (PartBase *member) {
 	boundingBox += member->boundingBox;
 
 	// Insert label in labelIndexMap
-	labelIndexMap.insert(make_pair(member->label, members.size()));
+    //std::cout << "a part with label '" << member->label << "' has been added" << std::endl;
+	//labelIndexMap.insert(make_pair(member->label, members.size()));
+	labelIndexMap[member->label] = members.size();
 
 	members.push_back(member);
 }
@@ -60,11 +65,50 @@ void Group::render (DisplayType displayType) {
 }
 
 PartBase *Group::getMember (string label) {
-	if (labelIndexMap.count(label) > 0)
+
+    //std::cout << "getMember: " << label << ", index = " << labelIndexMap.size() << ", " << std::endl;
+
+
+	// std::cout << "\t" << this->label << endl;
+	// for (std::map<string,int>::iterator it=labelIndexMap.begin(); it!=labelIndexMap.end(); ++it)
+ //    	std::cout << "\t\t" << it->first << " - " << it->second << endl;
+   
+
+	if (labelIndexMap.count(label) > 0) {		
 		return members[labelIndexMap[label]];
-	else
+	}
+	else {		
 		return NULL;
+	}
 }
+
+PartBase *Group::getMemberGlobally (string label) {
+
+	// std::cout << "\t" << this->label << endl;
+	// for (std::map<string,int>::iterator it=labelIndexMap.begin(); it!=labelIndexMap.end(); ++it)
+ //    	std::cout << "\t\t" << it->first << " - " << it->second << endl;
+
+
+    // if(this->label == label)
+    // 	return this;
+
+	if (labelIndexMap.count(label) > 0) {		
+		return members[labelIndexMap[label]];
+	}
+	else {	
+		for (std::map<string,int>::iterator it=labelIndexMap.begin(); it!=labelIndexMap.end(); ++it)
+			if(boost::algorithm::ends_with(it->first, "_Group")) {
+				PartBase *theGroup = this->members[it->second];
+				PartBase *thePart = theGroup->getMember(label);
+				if(NULL != thePart) 
+					return thePart;
+			}
+
+		return NULL;
+	}
+}
+
+
 
 void Group::setMember (string label, PartBase *member) {
 	if (labelIndexMap.count(label) > 0)

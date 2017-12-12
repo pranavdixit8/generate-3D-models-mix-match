@@ -25,18 +25,14 @@ struct VertexData
     string type; // i.e. Group or Part
 };
 
-struct RelationProperty
-{
-
-};
-
 struct EdgeData
 {
 //    std::string edge_name;
 //    double dist;
 
-    vector<RelationProperty> propertyVector;
-    map<string, RelationProperty> propertyMap;
+    //vector<RelationProperty> propertyVector;
+    // map < type, property>  
+    std::map<string, vector<std::pair <string, string>>> propertyMap;
 
 
 };
@@ -128,6 +124,25 @@ public:
         return edgeData;
     }
 
+    void insertEdgeData(string label_1, string label_2, string relationType, std::pair <string, string> edgeData) 
+    {        
+
+        if (getEdgeData(label_1, label_2).propertyMap.count(relationType) <= 0) 
+            getEdgeData(label_1, label_2).propertyMap[relationType] = vector<std::pair <string, string>>();
+        
+        getEdgeData(label_1, label_2).propertyMap[relationType].push_back(edgeData);        
+
+
+        std::cout << "-*- " << getEdgeData(label_1, label_2).propertyMap.size() << std::endl; 
+        //std::cout << "-*- " << getEdgeData(label_1, label_2).propertyMap[relationType][0].first << std::endl; 
+    }
+
+    void insertEdgeData(string label_1, string label_2, string relationType, vector<std::pair <string, string>> edgeData) 
+    {   
+        for(int i = 0; i < edgeData.size(); i++)   
+            insertEdgeData(label_1, label_2, relationType, edgeData[i]);                          
+    }
+
     void print()
     {
         std::cout << "vertices: " << std::endl;
@@ -139,7 +154,24 @@ public:
         std::cout << std::endl << "edges: " << std::endl;
         auto epair = boost::edges(this->dataGraph);
         for(auto iter=epair.first; iter!=epair.second; iter++) {
-            std::cout << this->dataGraph[source(*iter, this->dataGraph)].label << " - " << this->dataGraph[target(*iter, this->dataGraph)].label << std::endl;
+            string lbl_1 = this->dataGraph[source(*iter, this->dataGraph)].label;
+            string lbl_2 = this->dataGraph[target(*iter, this->dataGraph)].label;
+            std::cout << lbl_1 << " - " << lbl_2 << std::endl;
+
+            std::map<string, vector<std::pair <string, string>>> theMap = getEdgeData(lbl_1, lbl_2).propertyMap;
+
+            std::cout << theMap.size() << std::endl;
+
+            for(std::map<string,vector<std::pair <string, string>>>::iterator iter = theMap.begin(); iter != theMap.end(); ++iter)
+            {               
+
+                string str = "";
+                for(int j = 0; j < iter->second.size(); j++)
+                    str += ((j == 0)?"":", ") + iter->second[j].first;
+
+                std::cout << "-- " << iter->first << " - " << str << std::endl;                            
+            }
+
         }
     }
 

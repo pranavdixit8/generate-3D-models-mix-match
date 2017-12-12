@@ -34,6 +34,7 @@ public:
 	};
 
 	virtual PartBase *getMember (string label) {};
+	virtual PartBase *getMemberGlobally (string label) {};
 
 	virtual void setMember (string label, PartBase *part) {};
 

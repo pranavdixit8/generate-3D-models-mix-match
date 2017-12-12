@@ -41,7 +41,7 @@ public:
 };
 
 Part::Part (string label, Mesh mesh) {
-	this->setLabel(label+"_part");
+	this->setLabel(label + "_Part");
 	auto faceNormals = mesh.add_property_map<FaceIndex, Vector>("f:normals", CGAL::NULL_VECTOR).first;
 	auto vertexNormals = mesh.add_property_map<VertexIndex, Vector>("v:normals", CGAL::NULL_VECTOR).first;
 
