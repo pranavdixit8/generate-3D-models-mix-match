@@ -35,10 +35,19 @@ public:
 
 	virtual PartBase *getMember (string label) {};
 	virtual PartBase *getMemberGlobally (string label) {};
+	virtual PartBase *getParentGlobally (string label) {};
 
 	virtual void setMember (string label, PartBase *part) {};
 
-	virtual void render (DisplayType displayType) {};
+    virtual PartBase* make_copy() {};
+    
+    virtual bool removeMember(string label1) {};
+
+    // i.e. replace the object with "label1" from part1 with the object with "label2" from part2
+    virtual bool replace(string label1, PartBase *part2, string label2) {};
+    virtual bool swap(string label1, PartBase *part2, string label2) {};
+
+    virtual void render (DisplayType displayType) {};
 
 	void renderBoundingBox ();
 	Vector getCenter ();

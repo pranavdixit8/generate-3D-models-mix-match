@@ -15,11 +15,11 @@
 #include <string>
 #include <array>
 
-#include <parser.h>
-#include <part.h>
-#include <group.h>
-#include <RelationContainer.h>
-#include <relation.h>
+#include "parser.h"
+#include "part.h"
+#include "group.h"
+#include "RelationContainer.h"
+#include "relation.h"
 
 
 #include <iostream>
@@ -309,7 +309,24 @@ void control_cb(int control) {
 			std::cout<< "to load chairs."<<std::endl;
 			chairs = loadFiles(folderPath);
 			std::cout<< "chairs are loaded."<<std::endl;
-			graphs = make_graphs(chairs);
+			//graphs = make_graphs(chairs);
+			Group* theChair1 = dynamic_cast<Group*>(chairs[0]);
+			Group* theChair2 = dynamic_cast<Group*>(chairs[1]);
+			theChair1->print(0);
+			theChair2->print(0);
+
+			//theChair->removeMember("Arm_Group");
+
+			theChair1->swap("Leg_Group", theChair2, "Leg_Group");
+
+			theChair1->print(0);
+			theChair2->print(0);
+
+			// PartBase* aCopy = chairs[0]->make_copy();
+			// Group* theCopyChair = dynamic_cast<Group*>(aCopy);
+			// std::cout << "info: " << std::endl;
+			// theCopyChair->print(0);
+
 			updateGLUI(chairs);
 
 			break;

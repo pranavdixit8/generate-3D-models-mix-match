@@ -86,8 +86,7 @@ vector<PartBase*> loadFiles (string folderPathString) {
 			PartBase *newChair = loadFileOrFolder(subDirectory.path());
 			chairs.push_back(newChair);
 
-			cout << endl;
-			break;
+			cout << endl;			
 		}
 	} catch (const filesystem_error& ex) {
 		cout << "Filesystem Error! " << ex.what() << endl;

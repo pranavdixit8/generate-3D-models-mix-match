@@ -35,7 +35,8 @@ public:
 	Part () {};
 	~Part () {};
 	Part (string label, Mesh mesh);
-	static Part* initPart (string label, string filename);
+	static Part* initPart (string label, string filename);	
+	PartBase* make_copy();    
 	void writePart (string filename);
 	void render (DisplayType displayType) override;
 };
@@ -107,6 +108,17 @@ Part* Part::initPart (string label, string filename) {
 
 	return new Part(label, m);
 };
+
+PartBase* Part::make_copy() {
+
+	string theLabel = this->label;
+	int s_idx = this->label.find("_Part");
+	theLabel = theLabel.erase(s_idx, 5);
+
+	Mesh kidMesh(this->mesh);
+	Part* newPart = new Part(theLabel, kidMesh);	
+	return newPart;
+}
 
 void Part::writePart (string filename) {
 	map<VertexIndex, int> vertexIndexMap;
