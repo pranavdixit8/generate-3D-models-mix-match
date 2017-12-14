@@ -10,6 +10,8 @@
 #ifndef CGAL_H
 #define CGAL_H
 
+ #define CGAL_EIGEN3_ENABLED
+
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
 #include <boost/foreach.hpp>

@@ -25,3 +25,4 @@ void trainAllModels (string pathPositive, string pathNegative);
 float predict (Mat projection, View view);
 float predict (PartBase *part, View view);
 int isPlausible (PartBase *part);
+// void getHOG(vector<vector<float>> &hogVectors, vector<Mat> &samples);

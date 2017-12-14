@@ -41,6 +41,20 @@ void getTrainTestHOG (vector<vector<float>> &trainHOG, vector<vector<float>> &te
 	}
 }
 
+
+//function for k-mean clustering
+
+void getHOG(vector<vector<float>> &hogVectors, vector<Mat> &samples){
+
+	for (int i = 0; i < samples.size(); i++) {
+		vector<float> descriptors;
+		hog.compute(samples[i], descriptors);
+		hogVectors.push_back(descriptors);
+	}
+
+
+}
+
 void getTrainTest (vector<pair<Mat, int>> pView, vector<pair<Mat, int>> nView, 
 	vector<pair<Mat, int>> &trainData, vector<pair<Mat, int>> &testData) {
 	
@@ -103,6 +117,39 @@ float checkPlausible (Mat view1, Mat view2, Mat view3) {
 
 	return finalResponse;
 }
+
+
+
+void loadData (vector<Mat> &view1, vector<Mat> &view2, vector<Mat> &view3, string &pathName) {
+	DIR *dir;
+
+	struct dirent *ent;
+	const char* path = pathName.c_str();
+
+	if ((dir = opendir(path)) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			if (string(ent->d_name) == string(".") || string(ent->d_name) == string("..")) {
+				continue;
+			}
+
+			string pathName = path + string("/") + ent->d_name;
+			Mat img = imread(pathName.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+			
+			if (atoi(ent->d_name) % 3 == 1) {
+				view1.push_back(img);
+			} else if (atoi(ent->d_name) % 3 == 2) {
+				view2.push_back(img);
+			} else if (atoi(ent->d_name) % 3 == 0) {
+				view3.push_back(img);
+			}
+		}
+	} else { 
+		printf("Check your folder\n"); 
+	}
+}
+
+//
+// function for k-mean clustering
 
 void loadData (vector<pair<Mat, int>> &view1, vector<pair<Mat, int>> &view2, vector<pair<Mat, int>> &view3, string &pathName, int label) {
 	DIR *dir;
@@ -292,6 +339,7 @@ float predict (PartBase *part, View view) {
 	}
 
 	float prediction = predict(projectionMatrix, view);
+	std::cout<< "prediction: \t"<< prediction<<"\n";
 	return prediction;
 }
 

@@ -25,9 +25,9 @@ double getMinimumDistance (Mesh mesh1, Mesh mesh2) {
 }
 
 Skeleton getSkeleton (Mesh mesh) {
-	Skeleton skeleton;
-	CGAL::extract_mean_curvature_flow_skeleton(mesh, skeleton);
-	return skeleton;
+	// Skeleton skeleton;
+	// CGAL::extract_mean_curvature_flow_skeleton(mesh, skeleton);
+	// return skeleton;
 }
 
 Vector normalize (Vector vec) {
@@ -35,31 +35,31 @@ Vector normalize (Vector vec) {
 }
 
 bool isSkeletonCurved (Skeleton skeleton) {
-	PolyLines polylines(skeleton);
-	CGAL::split_graph_into_polylines(skeleton, polylines);
+	// PolyLines polylines(skeleton);
+	// CGAL::split_graph_into_polylines(skeleton, polylines);
 
-	if (polylines.polyline_count != 1) 
-		return false;
+	// if (polylines.polyline_count != 1) 
+	// 	return false;
 
-	std::vector<Point> points = polylines.points;
+	// std::vector<Point> points = polylines.points;
 
-	Point start = points[0];
-	Point end = points[points.size() - 1];
+	// Point start = points[0];
+	// Point end = points[points.size() - 1];
 
-	Vector direction = normalize(end - start);
+	// Vector direction = normalize(end - start);
 
-	for (int i = 0; i < points.size()-1; i++) {
-		Point p1 = points[i];
-		Point p2 = points[i+1];
+	// for (int i = 0; i < points.size()-1; i++) {
+	// 	Point p1 = points[i];
+	// 	Point p2 = points[i+1];
 
-		Vector localDirection = normalize(p2 - p1);
+	// 	Vector localDirection = normalize(p2 - p1);
 
-		if (direction * localDirection < SKELETON_CURVED_THRESHOLD) {
-			return true;
-		}
-	}
+	// 	if (direction * localDirection < SKELETON_CURVED_THRESHOLD) {
+	// 		return true;
+	// 	}
+	// }
 
-	return false;
+	// return false;
 }
 
 Line getLeastSquareFitLine (Mesh mesh) {
