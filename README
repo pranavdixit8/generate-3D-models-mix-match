@@ -1,16 +1,18 @@
-# CMPT 764: Assignment 2
-Author: Ravi Agrawal
-Date: November 7, 2017
+# CMPT 764: Project
+Authors: Ravi Agrawal, Pranav Dixit, Hamid Homapour
+
+Date: December 15, 2017
 
 ## Instructions
 - Run `make` to build the executable
 - Run `./mcaq` to launch the program
 - Run `make clean` to clean build files
 
-## All features mentioned in the assignment were implemented and tested on a CSIL machine.
-
 ## Used Libraries
 - OpenGL Mathematics (GLM) library for matrix and vector calculations.
-
-## Limitations
-- At extremely low polygon count (say less than 200 for the Horse mesh), a non-manifold mesh is almost unavoidable due to the local geometry. If we try to further decimate an edge, the non-manifold mesh causes the program to get stuck as some of the required references are not present in the resulting Winged Edge data structure.
+- CGAL (mesh, primitives)
+- OpenCV
+- LIBSVM
+- GLM
+- OSMesa
+- Boost
